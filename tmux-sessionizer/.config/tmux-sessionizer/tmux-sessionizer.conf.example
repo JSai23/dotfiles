@@ -1,0 +1,21 @@
+# tmux-sessionizer configuration
+# Copy this file to tmux-sessionizer.conf and customize for your machine
+#
+# Source: https://github.com/ThePrimeagen/tmux-sessionizer
+
+# Override default search paths (default: ~/ ~/personal ~/personal/dev/env/.config)
+# TS_SEARCH_PATHS=(~/)
+
+# Add extra search paths with optional depth suffix
+# Format: path[:depth]
+# TS_EXTRA_SEARCH_PATHS=(~/projects:2 ~/work:2 ~/.config:1)
+
+# Override max search depth (default: 1)
+# TS_MAX_DEPTH=2
+
+# Session commands (accessed via -s flag)
+# TS_SESSION_COMMANDS=("htop" "lazygit")
+
+# Enable logging (for debugging)
+# TS_LOG=true
+# TS_LOG_FILE=~/.local/share/tmux-sessionizer/tmux-sessionizer.logs

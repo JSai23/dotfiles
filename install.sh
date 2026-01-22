@@ -10,14 +10,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
-    brew install zsh stow git fzf starship
+    brew install zsh stow git fzf starship neovim tmux
 elif [[ -f /etc/debian_version ]]; then
     echo "Detected Debian/Ubuntu"
     sudo apt update
-    sudo apt install -y zsh stow git fzf
+    sudo apt install -y zsh stow git fzf neovim tmux
     curl -sS https://starship.rs/install.sh | sh -s -- -y
 else
-    echo "Unknown OS. Please install manually: zsh stow git fzf starship"
+    echo "Unknown OS. Please install manually: zsh stow git fzf starship neovim tmux"
     exit 1
 fi
 
@@ -36,7 +36,7 @@ fi
 
 # Backup existing configs if they're not symlinks
 backup_if_exists() {
-    if [ -f "$1" ] && [ ! -L "$1" ]; then
+    if [ -e "$1" ] && [ ! -L "$1" ]; then
         echo "Backing up $1 to $1.backup"
         mv "$1" "$1.backup"
     fi
@@ -45,9 +45,10 @@ backup_if_exists() {
 backup_if_exists ~/.zshrc
 backup_if_exists ~/.tmux.conf.local
 backup_if_exists ~/.config/starship.toml
+backup_if_exists ~/.config/nvim
 
-# Ensure .config exists
-mkdir -p ~/.config
+# Ensure .config directories exist
+mkdir -p ~/.config/tmux-sessionizer
 
 # Stow configs
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -57,6 +58,8 @@ echo "Stowing configs..."
 stow -v zsh
 stow -v tmux
 stow -v starship
+stow -v nvim
+stow -v tmux-sessionizer
 
 # Copy tmux bin scripts (can't stow these easily into oh-my-tmux structure)
 echo "Installing tmux scripts..."
@@ -77,7 +80,24 @@ if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
 fi
 
 echo ""
-echo "Done! Restart your shell or run: exec zsh"
+echo "=========================================="
+echo "Installation complete!"
+echo "=========================================="
 echo ""
-echo "Note: For the best experience, install a Nerd Font:"
-echo "  https://www.nerdfonts.com/font-downloads (JetBrains Mono recommended)"
+echo "Post-install steps:"
+echo ""
+echo "1. Configure tmux-sessionizer paths:"
+echo "   cp ~/.config/tmux-sessionizer/tmux-sessionizer.conf.example \\"
+echo "      ~/.config/tmux-sessionizer/tmux-sessionizer.conf"
+echo "   # Then edit to add your project directories"
+echo ""
+echo "2. If using Nerd Fonts, edit ~/.config/nvim/init.lua:"
+echo "   vim.g.have_nerd_font = true"
+echo ""
+echo "3. Review ~/.zshrc and remove machine-specific paths if needed"
+echo "   (Claude Code, bun, cargo sections)"
+echo ""
+echo "4. Install a Nerd Font for best experience:"
+echo "   https://www.nerdfonts.com/font-downloads (JetBrains Mono recommended)"
+echo ""
+echo "Restart your shell or run: exec zsh"

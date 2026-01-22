@@ -318,7 +318,7 @@ if [[ ! -z $session_cmd ]]; then
 elif [[ ! -z $user_selected ]]; then
     selected="$user_selected"
 else
-    selected=$({ echo "/home/polydev"; find -L /home/polydev -mindepth 1 -maxdepth 1 -type d -not -path '*/\.*'; } | fzf)
+    selected=$(find_dirs | fzf)
 fi
 
 if [[ -z $selected ]]; then

@@ -242,10 +242,8 @@ find_dirs() {
             path="$entry"
         fi
 
-        # Show the path itself first (e.g., home directory)
         [[ -d "$path" ]] && echo "$path"
-        # Find subdirectories, excluding hidden dirs (.*) and .git
-        [[ -d "$path" ]] && find "$path" -mindepth 1 -maxdepth "${depth:-${TS_MAX_DEPTH:-1}}" -type d -not -path '*/.*' -print
+        [[ -d "$path" ]] && find -L "$path" -mindepth 1 -maxdepth "${depth:-${TS_MAX_DEPTH:-1}}" -type d -not -path '*/\.*'
     done
 }
 
@@ -320,6 +318,8 @@ if [[ ! -z $session_cmd ]]; then
     handle_session_cmd
 elif [[ ! -z $user_selected ]]; then
     selected="$user_selected"
+elif [[ ! -z $TS_FIND_CMD ]]; then
+    selected=$(eval "$TS_FIND_CMD" | fzf)
 else
     selected=$(find_dirs | fzf)
 fi

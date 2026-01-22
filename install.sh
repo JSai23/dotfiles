@@ -32,11 +32,6 @@ if [ ! -d "$OH_MY_ZSH_DIR" ]; then
     ZSH="$OH_MY_ZSH_DIR" sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
 fi
 
-# Clean up old oh-my-zsh location if exists
-if [ -d "$HOME/.oh-my-zsh" ] && [ "$HOME/.oh-my-zsh" != "$OH_MY_ZSH_DIR" ]; then
-    echo "Note: Old oh-my-zsh at ~/.oh-my-zsh still exists. You can remove it after verifying the new install works."
-fi
-
 # Install oh-my-tmux using XDG approach
 OH_MY_TMUX_DIR="$XDG_DATA_HOME/oh-my-tmux"
 if [ ! -d "$OH_MY_TMUX_DIR" ]; then
@@ -51,29 +46,6 @@ if [ ! -L "$XDG_CONFIG_HOME/tmux/tmux.conf" ]; then
     ln -sf "$OH_MY_TMUX_DIR/.tmux.conf" "$XDG_CONFIG_HOME/tmux/tmux.conf"
 fi
 
-# Clean up old-style tmux config if exists
-if [ -L "$HOME/.tmux.conf" ]; then
-    echo "Removing old ~/.tmux.conf symlink..."
-    rm "$HOME/.tmux.conf"
-fi
-if [ -f "$HOME/.tmux.conf.local" ]; then
-    echo "Backing up old ~/.tmux.conf.local..."
-    mv "$HOME/.tmux.conf.local" "$HOME/.tmux.conf.local.backup"
-fi
-
-# Backup existing configs if they're not symlinks
-backup_if_exists() {
-    if [ -e "$1" ] && [ ! -L "$1" ]; then
-        echo "Backing up $1 to $1.backup"
-        mv "$1" "$1.backup"
-    fi
-}
-
-backup_if_exists ~/.zshrc
-backup_if_exists "$XDG_CONFIG_HOME/tmux/tmux.conf.local"
-backup_if_exists "$XDG_CONFIG_HOME/starship.toml"
-backup_if_exists "$XDG_CONFIG_HOME/nvim"
-
 # Ensure directories exist
 mkdir -p "$XDG_CONFIG_HOME/tmux-sessionizer"
 mkdir -p "$HOME/.local/bin"
@@ -83,11 +55,17 @@ DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DOTFILES_DIR"
 
 echo "Stowing configs..."
-stow -v zsh
-stow -v tmux
-stow -v starship
-stow -v nvim
-stow -v tmux-sessionizer
+stow -R -v zsh
+stow -R -v tmux
+stow -R -v starship
+stow -R -v nvim
+
+# Copy tmux-sessionizer example config if no local config exists
+if [ ! -f "$XDG_CONFIG_HOME/tmux-sessionizer/tmux-sessionizer.conf" ]; then
+    echo "Creating tmux-sessionizer config from example..."
+    cp tmux-sessionizer/tmux-sessionizer.conf.example "$XDG_CONFIG_HOME/tmux-sessionizer/tmux-sessionizer.conf"
+    echo "IMPORTANT: Edit $XDG_CONFIG_HOME/tmux-sessionizer/tmux-sessionizer.conf with your paths!"
+fi
 
 # Install tmux scripts to ~/.local/bin (XDG standard for user executables)
 echo "Installing tmux scripts to ~/.local/bin..."

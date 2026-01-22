@@ -1,0 +1,9 @@
+# tmux-sessionizer configuration (machine-specific)
+# Copy to ~/.config/tmux-sessionizer/tmux-sessionizer.conf and edit
+
+# Custom find command - edit paths for your machine
+TS_FIND_CMD='{ echo "/home/YOUR_USER"; find -L /home/YOUR_USER -mindepth 1 -maxdepth 1 -type d -not -path "*/\.*"; }'
+
+# Or use built-in path config instead:
+# TS_SEARCH_PATHS=(~/:1)
+# TS_EXTRA_SEARCH_PATHS=(~/projects:2)

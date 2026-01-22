@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if tmux has-session -t=scratchpad 2>/dev/null; then
+    TMUX= tmux attach-session -t scratchpad
+else
+    tmux new-session -ds scratchpad -c ~ "nvim"
+    TMUX= tmux attach-session -t scratchpad
+fi

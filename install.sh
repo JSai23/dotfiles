@@ -25,10 +25,16 @@ else
     exit 1
 fi
 
-# Install oh-my-zsh (if not present)
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "Installing oh-my-zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+# Install oh-my-zsh to XDG location (if not present)
+OH_MY_ZSH_DIR="$XDG_DATA_HOME/oh-my-zsh"
+if [ ! -d "$OH_MY_ZSH_DIR" ]; then
+    echo "Installing oh-my-zsh to $OH_MY_ZSH_DIR..."
+    ZSH="$OH_MY_ZSH_DIR" sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+fi
+
+# Clean up old oh-my-zsh location if exists
+if [ -d "$HOME/.oh-my-zsh" ] && [ "$HOME/.oh-my-zsh" != "$OH_MY_ZSH_DIR" ]; then
+    echo "Note: Old oh-my-zsh at ~/.oh-my-zsh still exists. You can remove it after verifying the new install works."
 fi
 
 # Install oh-my-tmux using XDG approach
@@ -89,7 +95,7 @@ cp tmux-bin/* "$HOME/.local/bin/"
 chmod +x "$HOME/.local/bin/sessionizer" "$HOME/.local/bin/scratchpad"
 
 # Install zsh plugins
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+ZSH_CUSTOM="${ZSH_CUSTOM:-$OH_MY_ZSH_DIR/custom}"
 if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
     echo "Installing zsh-syntax-highlighting..."
     git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
@@ -106,6 +112,7 @@ echo "Installation complete!"
 echo "=========================================="
 echo ""
 echo "Config locations (XDG style):"
+echo "  oh-my-zsh:   $OH_MY_ZSH_DIR"
 echo "  oh-my-tmux:  $OH_MY_TMUX_DIR"
 echo "  tmux config: $XDG_CONFIG_HOME/tmux/"
 echo "  nvim config: $XDG_CONFIG_HOME/nvim/"

@@ -3,6 +3,10 @@ set -e
 
 echo "Installing dotfiles..."
 
+# Set XDG defaults if not defined
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+
 # Detect OS and install dependencies
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Detected macOS"
@@ -27,11 +31,28 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-# Install oh-my-tmux (if not present)
-if [ ! -d "$HOME/.tmux" ]; then
-    echo "Installing oh-my-tmux..."
-    git clone https://github.com/gpakosz/.tmux.git ~/.tmux
-    ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
+# Install oh-my-tmux using XDG approach
+OH_MY_TMUX_DIR="$XDG_DATA_HOME/oh-my-tmux"
+if [ ! -d "$OH_MY_TMUX_DIR" ]; then
+    echo "Installing oh-my-tmux to $OH_MY_TMUX_DIR..."
+    git clone --single-branch https://github.com/gpakosz/.tmux.git "$OH_MY_TMUX_DIR"
+fi
+
+# Create XDG tmux config directory and symlink framework
+mkdir -p "$XDG_CONFIG_HOME/tmux"
+if [ ! -L "$XDG_CONFIG_HOME/tmux/tmux.conf" ]; then
+    echo "Linking oh-my-tmux framework..."
+    ln -sf "$OH_MY_TMUX_DIR/.tmux.conf" "$XDG_CONFIG_HOME/tmux/tmux.conf"
+fi
+
+# Clean up old-style tmux config if exists
+if [ -L "$HOME/.tmux.conf" ]; then
+    echo "Removing old ~/.tmux.conf symlink..."
+    rm "$HOME/.tmux.conf"
+fi
+if [ -f "$HOME/.tmux.conf.local" ]; then
+    echo "Backing up old ~/.tmux.conf.local..."
+    mv "$HOME/.tmux.conf.local" "$HOME/.tmux.conf.local.backup"
 fi
 
 # Backup existing configs if they're not symlinks
@@ -43,12 +64,13 @@ backup_if_exists() {
 }
 
 backup_if_exists ~/.zshrc
-backup_if_exists ~/.tmux.conf.local
-backup_if_exists ~/.config/starship.toml
-backup_if_exists ~/.config/nvim
+backup_if_exists "$XDG_CONFIG_HOME/tmux/tmux.conf.local"
+backup_if_exists "$XDG_CONFIG_HOME/starship.toml"
+backup_if_exists "$XDG_CONFIG_HOME/nvim"
 
-# Ensure .config directories exist
-mkdir -p ~/.config/tmux-sessionizer
+# Ensure directories exist
+mkdir -p "$XDG_CONFIG_HOME/tmux-sessionizer"
+mkdir -p "$HOME/.local/bin"
 
 # Stow configs
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -61,11 +83,10 @@ stow -v starship
 stow -v nvim
 stow -v tmux-sessionizer
 
-# Copy tmux bin scripts (can't stow these easily into oh-my-tmux structure)
-echo "Installing tmux scripts..."
-mkdir -p ~/.tmux/bin
-cp tmux-bin/* ~/.tmux/bin/
-chmod +x ~/.tmux/bin/*
+# Install tmux scripts to ~/.local/bin (XDG standard for user executables)
+echo "Installing tmux scripts to ~/.local/bin..."
+cp tmux-bin/* "$HOME/.local/bin/"
+chmod +x "$HOME/.local/bin/sessionizer" "$HOME/.local/bin/scratchpad"
 
 # Install zsh plugins
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
@@ -84,20 +105,28 @@ echo "=========================================="
 echo "Installation complete!"
 echo "=========================================="
 echo ""
+echo "Config locations (XDG style):"
+echo "  oh-my-tmux:  $OH_MY_TMUX_DIR"
+echo "  tmux config: $XDG_CONFIG_HOME/tmux/"
+echo "  nvim config: $XDG_CONFIG_HOME/nvim/"
+echo "  scripts:     ~/.local/bin/"
+echo ""
 echo "Post-install steps:"
 echo ""
 echo "1. Configure tmux-sessionizer paths:"
-echo "   cp ~/.config/tmux-sessionizer/tmux-sessionizer.conf.example \\"
-echo "      ~/.config/tmux-sessionizer/tmux-sessionizer.conf"
+echo "   cp $XDG_CONFIG_HOME/tmux-sessionizer/tmux-sessionizer.conf.example \\"
+echo "      $XDG_CONFIG_HOME/tmux-sessionizer/tmux-sessionizer.conf"
 echo "   # Then edit to add your project directories"
 echo ""
-echo "2. If using Nerd Fonts, edit ~/.config/nvim/init.lua:"
+echo "2. If using Nerd Fonts, edit $XDG_CONFIG_HOME/nvim/init.lua:"
 echo "   vim.g.have_nerd_font = true"
 echo ""
 echo "3. Review ~/.zshrc and remove machine-specific paths if needed"
 echo "   (Claude Code, bun, cargo sections)"
 echo ""
-echo "4. Install a Nerd Font for best experience:"
+echo "4. Ensure ~/.local/bin is in your PATH (should be in .zshrc)"
+echo ""
+echo "5. Install a Nerd Font for best experience:"
 echo "   https://www.nerdfonts.com/font-downloads (JetBrains Mono recommended)"
 echo ""
 echo "Restart your shell or run: exec zsh"

@@ -2,6 +2,8 @@
 
 My terminal configuration files, managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
+Uses [XDG Base Directory](https://wiki.archlinux.org/title/XDG_Base_Directory) standard for clean organization.
+
 ## What's Included
 
 - **zsh** - Shell config (oh-my-zsh, vi mode, starship prompt)
@@ -14,12 +16,28 @@ My terminal configuration files, managed with [GNU Stow](https://www.gnu.org/sof
 ## Quick Start
 
 ```bash
-# Clone
 git clone git@github.com:JSai23/dotfiles.git ~/dotfiles
-
-# Install
 cd ~/dotfiles
 ./install.sh
+```
+
+## XDG Directory Structure
+
+```
+~/.config/                              # XDG_CONFIG_HOME
+├── tmux/
+│   ├── tmux.conf        -> oh-my-tmux  # Framework (symlink)
+│   └── tmux.conf.local  -> dotfiles    # Your customizations
+├── nvim/                -> dotfiles    # Neovim config
+├── starship.toml        -> dotfiles    # Prompt theme
+└── tmux-sessionizer/                   # Sessionizer config
+
+~/.local/
+├── share/
+│   └── oh-my-tmux/                     # oh-my-tmux repo
+└── bin/
+    ├── sessionizer                     # tmux project picker
+    └── scratchpad                      # nvim popup
 ```
 
 ## Post-Install Setup
@@ -36,83 +54,53 @@ cd ~/dotfiles
    vim.g.have_nerd_font = true
    ```
 
-3. **Remove machine-specific paths** from `~/.zshrc` if not needed:
-   - Claude Code paths
-   - bun paths
-   - cargo paths
+3. **Remove machine-specific paths** from `~/.zshrc` if not needed
 
 ## Key Bindings
 
 | Binding | Action |
 |---------|--------|
-| `prefix + f` | Open tmux-sessionizer (project picker) |
-| `prefix + n` | Open nvim scratchpad popup |
+| `prefix + f` | tmux-sessionizer (project picker) |
+| `prefix + n` | nvim scratchpad popup |
 | `bindkey -v` | Vi mode in zsh |
 
 ## Manual Installation
 
 ```bash
-# Install dependencies (macOS)
-brew install zsh stow git fzf starship neovim tmux
-
 # Install dependencies (Debian/Ubuntu)
 sudo apt install -y zsh stow git fzf neovim tmux
 curl -sS https://starship.rs/install.sh | sh
 
-# Clone and stow
+# Clone
 git clone git@github.com:JSai23/dotfiles.git ~/dotfiles
 cd ~/dotfiles
+
+# Install oh-my-tmux (XDG style)
+git clone --single-branch https://github.com/gpakosz/.tmux.git ~/.local/share/oh-my-tmux
+mkdir -p ~/.config/tmux
+ln -s ~/.local/share/oh-my-tmux/.tmux.conf ~/.config/tmux/tmux.conf
+
+# Stow configs
 stow zsh tmux starship nvim tmux-sessionizer
 
-# Copy tmux scripts
-mkdir -p ~/.tmux/bin
-cp tmux-bin/* ~/.tmux/bin/
-chmod +x ~/.tmux/bin/*
-```
-
-## Structure
-
-```
-~/dotfiles/
-├── zsh/
-│   └── .zshrc                    -> ~/.zshrc
-├── tmux/
-│   └── .tmux.conf.local          -> ~/.tmux.conf.local
-├── tmux-bin/
-│   ├── sessionizer               -> ~/.tmux/bin/sessionizer
-│   └── scratchpad                -> ~/.tmux/bin/scratchpad
-├── starship/
-│   └── .config/
-│       └── starship.toml         -> ~/.config/starship.toml
-├── nvim/
-│   └── .config/
-│       └── nvim/
-│           ├── init.lua          -> ~/.config/nvim/init.lua
-│           └── lua/...           -> ~/.config/nvim/lua/...
-├── tmux-sessionizer/
-│   └── .config/
-│       └── tmux-sessionizer/
-│           └── *.conf.example    -> ~/.config/tmux-sessionizer/
-├── install.sh
-├── sources.md
-└── README.md
+# Install scripts
+cp tmux-bin/* ~/.local/bin/
+chmod +x ~/.local/bin/*
 ```
 
 ## Dependencies (Installed Separately)
 
-These are cloned/installed by `install.sh`, not tracked in this repo:
-
 - [oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh) - `~/.oh-my-zsh/`
-- [oh-my-tmux](https://github.com/gpakosz/.tmux) - `~/.tmux/`
+- [oh-my-tmux](https://github.com/gpakosz/.tmux) - `~/.local/share/oh-my-tmux/`
 
 ## Fonts
 
-Install a [Nerd Font](https://www.nerdfonts.com/font-downloads) for icons to display correctly.
+Install a [Nerd Font](https://www.nerdfonts.com/font-downloads) for icons.
 Recommended: JetBrains Mono Nerd Font.
 
 ## Sources & Customizations
 
-See [sources.md](sources.md) for detailed documentation of:
+See [sources.md](sources.md) for:
 - Where each config comes from (upstream templates)
 - What customizations have been made
 - How to update upstream dependencies

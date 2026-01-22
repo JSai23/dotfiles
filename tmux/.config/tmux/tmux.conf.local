@@ -411,10 +411,10 @@ bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?
 #set -g status-position top
 
 # tmux-sessionizer: prefix + f to open project picker
-run-shell 'tmux unbind f; tmux bind f display-popup -E ~/.tmux/bin/sessionizer'
+run-shell 'tmux unbind f; tmux bind f display-popup -E ~/.local/bin/sessionizer'
 
 # prefix + n to open nvim scratchpad in a popup
-bind-key n display-popup -E -w 90% -h 90% ~/.tmux/bin/scratchpad
+bind-key n display-popup -E -w 90% -h 90% ~/.local/bin/scratchpad
 
 
 # -- tpm -----------------------------------------------------------------------
